@@ -8,9 +8,11 @@
 <div class="mt-6 flex gap-4">
   <a href="{{ asset($ebook['file']) }}" download class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">📥 Unduh eBook</a>
   <a href="{{ url('/ebooks/' . $ebook['slug'] . '/read') }}"
+   target="_blank"
    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
   📖 Baca Sekarang
 </a>
+
 </div>
 
 </div>

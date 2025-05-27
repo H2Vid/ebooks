@@ -33,13 +33,6 @@ class EbookController extends Controller
         abort_unless($ebook, 404);
         return view('ebooks.show', ['ebook' => $ebook]);
     }
-    public function read($slug)
-{
-    $ebook = collect($this->ebooks)->firstWhere('slug', $slug);
-
-    abort_unless($ebook, 404);
-    return view('ebooks.read', ['ebook' => $ebook]);
-}
 
 }
 
