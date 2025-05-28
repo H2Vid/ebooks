@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Ebook;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -55,7 +56,8 @@ class AuthController extends Controller
 
     public function dashboard()
     {
-        return view('cms.dashboard');
+        $ebooks = Ebook::latest()->get();
+    return view('cms.dashboard', compact('ebooks'));
     }
 
     public function logout(Request $request)

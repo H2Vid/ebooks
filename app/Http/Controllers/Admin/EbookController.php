@@ -64,24 +64,57 @@ return redirect()->route('cms.ebooks.create')->with('success', 'eBook berhasil d
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+    public function edit($id)
+{
+    $ebook = Ebook::findOrFail($id);
+    return view('cms.ebooks.edit', compact('ebook'));
+}
+
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
+  public function update(Request $request, $id)
+{
+    $ebook = Ebook::findOrFail($id);
+
+    $data = $request->validate([
+        'title'        => 'required|string|max:255',
+        'author'       => 'required|string|max:255',
+        'published_at' => 'required|date',
+        'cover'        => 'nullable|image|mimes:jpg,jpeg,png',
+        'file'         => 'nullable|mimes:pdf',
+    ]);
+
+    // Update cover jika ada
+    if ($request->hasFile('cover')) {
+        \Storage::disk('public')->delete($ebook->cover);
+        $data['cover'] = $request->file('cover')->store('covers', 'public');
     }
+
+    // Update file PDF jika ada
+    if ($request->hasFile('file')) {
+        \Storage::disk('public')->delete($ebook->file);
+        $data['file'] = $request->file('file')->store('pdfs', 'public');
+    }
+
+    $ebook->update($data);
+
+    return redirect()->route('cms.ebooks.edit', $ebook->id)->with('success', 'eBook berhasil diperbarui.');
+}
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
-        //
-    }
+   public function destroy($id)
+{
+    $ebook = Ebook::findOrFail($id);
+
+    // Hapus file cover dan PDF dari storage
+    \Storage::disk('public')->delete([$ebook->cover, $ebook->file]);
+
+    $ebook->delete();
+
+    return redirect()->route('cms.dashboard')->with('success', 'eBook berhasil dihapus.');
+}
 }
