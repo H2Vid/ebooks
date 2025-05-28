@@ -1,6 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\EbookController;
 
 Route::prefix('cms')->name('cms.')->group(function () {
     // Hanya boleh di‑akses tamu (belum login)
@@ -13,5 +14,6 @@ Route::prefix('cms')->name('cms.')->group(function () {
 Route::middleware('admin.auth')->group(function () {
     Route::post('/logout',  [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard',[AuthController::class, 'dashboard'])->name('dashboard');
+     Route::resource('ebooks', EbookController::class);
 });
 });
