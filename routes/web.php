@@ -1,23 +1,22 @@
 <?php
 
+use App\Models\Ebook;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ebookController;
+use App\Http\Controllers\EbooksLandingController;
 
-Route::get('/', [ebookController::class, 'landing']);
-Route::get('/ebooks', [ebookController::class, 'index']);
-Route::get('/ebooks/{slug}', [ebookController::class, 'show']);
+Route::get('/', [EbooksLandingController::class, 'landing']);
+Route::get('/ebooks', [EbooksLandingController::class, 'index']);
+Route::get('/ebooks/{slug}', [EbooksLandingController::class, 'show']);
+
 Route::get('/ebooks/{slug}/read', function ($slug) {
-    $ebook = collect([
-        [
-            'title' => 'Panduan ASN Digital',
-            'slug' => 'panduan-asn-digital',
-            'file' => 'ebooks/tes.pdf'
-        ]
-    ])->firstWhere('slug', $slug);
+    $ebook = Ebook::get()->first(function ($item) use ($slug) {
+        return Str::slug($item->title) === $slug;
+    });
 
-    if (!$ebook) abort(404);
+    abort_unless($ebook, 404);
 
-    $pdfPath = asset($ebook['file']);
+    $pdfPath = asset('storage/' . $ebook->file);
     return redirect("/pdfjs/web/viewer.html?file=$pdfPath");
 });
 
