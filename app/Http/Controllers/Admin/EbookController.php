@@ -12,10 +12,11 @@ class EbookController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        $ebooks = Ebook::latest()->get();
-        return view('cms.ebooks.index', compact('ebooks'));
-    }
+{
+    $ebooks = Ebook::latest()->paginate(5);
+    return view('cms.ebooks.index', compact('ebooks'));
+}
+
 
     /**
      * Show the form for creating a new resource.
