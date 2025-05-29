@@ -39,6 +39,7 @@ public function store(Request $request)
         'published_at' => 'required|date',
         'cover'        => 'required|image|mimes:jpg,jpeg,png',
         'file'         => 'required|mimes:pdf',
+          'deskripsi'  => 'required|string',
     ]);
 
     $coverPath = $request->file('cover')->store('covers', 'public');
@@ -50,6 +51,7 @@ public function store(Request $request)
         'published_at' => $data['published_at'],
         'cover'        => $coverPath,
         'file'         => $filePath,
+         'deskripsi'  => $data['deskripsi'],
     ]);
 return redirect()->route('cms.ebooks.create')->with('success', 'eBook berhasil diunggah.');
 
@@ -86,6 +88,7 @@ return redirect()->route('cms.ebooks.create')->with('success', 'eBook berhasil d
         'published_at' => 'required|date',
         'cover'        => 'nullable|image|mimes:jpg,jpeg,png',
         'file'         => 'nullable|mimes:pdf',
+        'deskripsi' => 'nullable|string',
     ]);
 
     // Update cover jika ada

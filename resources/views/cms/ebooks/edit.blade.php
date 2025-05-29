@@ -30,6 +30,17 @@
                     placeholder="Masukkan judul eBook"
                 />
             </div>
+<div>
+    <label for="description" class="block mb-2 font-semibold text-green-700">Deskripsi</label>
+    <textarea
+        id="deskripsi"
+        name="deskripsi"
+        rows="4"
+        class="w-full rounded border border-green-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+        placeholder="Masukkan deskripsi eBook"
+        required
+    >{{ old('description', $ebook->description) }}</textarea>
+</div>
 
             <div>
                 <label for="author" class="block mb-2 font-semibold text-green-700">Penulis</label>
