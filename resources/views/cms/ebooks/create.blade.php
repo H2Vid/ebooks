@@ -3,41 +3,143 @@
 @section('title', 'Upload eBook')
 
 @section('content')
-    <h2 class="text-xl font-semibold mb-4">Upload eBook</h2>
-@if(session('success'))
-    <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">
-        {{ session('success') }}
+<div class="bg-gray-50 p-6 rounded-lg shadow-sm">
+    <h2 class="text-2xl font-semibold mb-6 text-green-800">Upload eBook</h2>
+
+    @if(session('success'))
+        <div class="mb-6 p-4 bg-green-100 text-green-800 rounded border border-green-300">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="flex justify-between w-full md:flex-row gap-8 ">
+        {{-- Form Upload --}}
+        <form method="POST" action="{{ route('cms.ebooks.store') }}" enctype="multipart/form-data" class="w-[100%] space-y-6" id="uploadForm">
+            @csrf
+
+            <div>
+                <label for="title" class="block mb-2 font-semibold text-green-700">Judul</label>
+                <input
+                    id="title"
+                    name="title"
+                    required
+                    type="text"
+                    class="w-full rounded border border-green-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    placeholder="Masukkan judul eBook"
+                />
+            </div>
+
+            <div>
+                <label for="author" class="block mb-2 font-semibold text-green-700">Penulis</label>
+                <input
+                    id="author"
+                    name="author"
+                    required
+                    type="text"
+                    class="w-full rounded border border-green-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                    placeholder="Masukkan nama penulis"
+                />
+            </div>
+
+            <div>
+                <label for="published_at" class="block mb-2 font-semibold text-green-700">Tanggal Terbit</label>
+                <input
+                    id="published_at"
+                    name="published_at"
+                    required
+                    type="date"
+                    class="w-full rounded border border-green-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
+                />
+            </div>
+
+            <div>
+                <label for="cover" class="block mb-2 font-semibold text-green-700">Cover (jpg/png)</label>
+                <input
+                    id="cover"
+                    name="cover"
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    required
+                    class="w-full text-green-700"
+                />
+            </div>
+
+            <div>
+                <label for="file" class="block mb-2 font-semibold text-green-700">File PDF</label>
+                <input
+                    id="file"
+                    name="file"
+                    type="file"
+                    accept="application/pdf"
+                    required
+                    class="w-full text-green-700"
+                />
+            </div>
+
+            <button
+                type="submit"
+                class="bg-green-600 hover:bg-green-700 transition text-white font-semibold px-6 py-2 rounded shadow"
+            >
+                Upload
+            </button>
+        </form>
+
+        {{-- Preview Section --}}
+        <div class="w-[50%] p-6 rounded shadow border border-green-200">
+            <h3 class="text-xl font-semibold text-green-800 mb-4">Preview eBook</h3>
+
+            <div class="mb-6">
+                <p class="font-semibold text-green-700 mb-2">Cover Preview:</p>
+                <div class="w-full h-64 bg-green-50 rounded flex items-center justify-center border border-green-200 overflow-hidden">
+                    <img id="coverPreview" src="#" alt="Preview Cover" class="hidden max-h-full" />
+                    <span id="noCoverText" class="text-green-300">Belum ada gambar dipilih</span>
+                </div>
+            </div>
+
+            <div>
+                <p class="font-semibold text-green-700 mb-2">File PDF yang dipilih:</p>
+                <div id="pdfPreview" class="text-green-600 italic border border-green-200 rounded p-4 bg-green-50">
+                    Belum ada file PDF dipilih
+                </div>
+            </div>
+        </div>
     </div>
-@endif
-
-    <form method="POST" action="{{ route('cms.ebooks.store') }}" enctype="multipart/form-data" class="space-y-4">
-        @csrf
-
-        <div>
-            <label class="block font-medium">Judul</label>
-            <input name="title" required class="w-full border rounded px-3 py-2" />
-        </div>
-
-        <div>
-            <label class="block font-medium">Penulis</label>
-            <input name="author" required class="w-full border rounded px-3 py-2" />
-        </div>
-
-        <div>
-            <label class="block font-medium">Tanggal Terbit</label>
-            <input type="date" name="published_at" required class="w-full border rounded px-3 py-2" />
-        </div>
-
-        <div>
-            <label class="block font-medium">Cover (jpg/png)</label>
-            <input type="file" name="cover" accept="image/*" required class="w-full" />
-        </div>
-
-        <div>
-            <label class="block font-medium">File PDF</label>
-            <input type="file" name="file" accept="application/pdf" required class="w-full" />
-        </div>
-
-        <button class="bg-blue-600 text-white px-4 py-2 rounded">Upload</button>
-    </form>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    const coverInput = document.getElementById('cover');
+    const coverPreview = document.getElementById('coverPreview');
+    const noCoverText = document.getElementById('noCoverText');
+
+    const pdfInput = document.getElementById('file');
+    const pdfPreview = document.getElementById('pdfPreview');
+
+    coverInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                coverPreview.setAttribute('src', e.target.result);
+                coverPreview.classList.remove('hidden');
+                noCoverText.classList.add('hidden');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            coverPreview.setAttribute('src', '#');
+            coverPreview.classList.add('hidden');
+            noCoverText.classList.remove('hidden');
+        }
+    });
+
+    pdfInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if(file) {
+            pdfPreview.textContent = file.name;
+        } else {
+            pdfPreview.textContent = 'Belum ada file PDF dipilih';
+        }
+    });
+</script>
+@endpush
