@@ -13,7 +13,8 @@ class EbookController extends Controller
      */
     public function index()
     {
-        //
+        $ebooks = Ebook::latest()->get();
+        return view('cms.ebooks.index', compact('ebooks'));
     }
 
     /**

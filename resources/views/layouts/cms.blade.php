@@ -23,16 +23,16 @@
                class="flex items-center px-4 py-2 rounded-lg text-gray-700 hover:bg-green-50 hover:text-green-700 transition font-medium {{ request()->routeIs('cms.dashboard') ? 'bg-green-100 text-green-700' : '' }}">
                 <span class="text-xl mr-3">🏠</span> Dashboard
             </a>
-
+            <a href="{{ route('cms.ebooks.index') }}"
+               class="flex items-center px-4 py-2 rounded-lg text-gray-700 hover:bg-green-50 hover:text-green-700 transition font-medium {{ request()->routeIs('cms.ebooks.index') ? 'bg-green-100 text-green-700' : '' }}">
+                <span class="text-xl mr-3">📚</span> Daftar eBook
+            </a>
             <a href="{{ route('cms.ebooks.create') }}"
                class="flex items-center px-4 py-2 rounded-lg text-gray-700 hover:bg-green-50 hover:text-green-700 transition font-medium {{ request()->routeIs('cms.ebooks.create') ? 'bg-green-100 text-green-700' : '' }}">
                 <span class="text-xl mr-3">➕</span> Upload eBook
             </a>
 
-            <a href=""
-               class="flex items-center px-4 py-2 rounded-lg text-gray-700 hover:bg-green-50 hover:text-green-700 transition font-medium {{ request()->routeIs('cms.ebooks.index') ? 'bg-green-100 text-green-700' : '' }}">
-                <span class="text-xl mr-3">📚</span> Daftar eBook
-            </a>
+
         </nav>
 
         {{-- LOGOUT --}}

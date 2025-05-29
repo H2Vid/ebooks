@@ -3,7 +3,7 @@
 @section('title', 'Upload eBook')
 
 @section('content')
-<div class="bg-gray-50 p-6 rounded-lg shadow-sm">
+<div class="bg-gray-100 p-6 rounded-lg shadow-sm">
     <h2 class="text-2xl font-semibold mb-6 text-green-800">Upload eBook</h2>
 
     @if(session('success'))
