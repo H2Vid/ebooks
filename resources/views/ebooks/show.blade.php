@@ -32,11 +32,12 @@
 
     {{-- Deskripsi --}}
     <div class="mt-8 text-gray-700 leading-relaxed">
-      @if (!empty($ebook->description))
-        <p>{{ $ebook->description }}</p>
-      @else
-        <p class="italic text-sm text-gray-500">*Deskripsi eBook belum tersedia*</p>
-      @endif
+     @if (!empty($ebook->deskripsi))
+  <p>{{ $ebook->deskripsi }}</p>
+@else
+  <p class="italic text-sm text-gray-500">*Deskripsi eBook belum tersedia*</p>
+@endif
+
     </div>
   </div>
 
