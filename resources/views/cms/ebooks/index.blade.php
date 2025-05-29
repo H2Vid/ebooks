@@ -37,7 +37,8 @@
                     <tbody>
                         @foreach($ebooks as $ebook)
                             <tr class="border-t border-green-200 hover:bg-green-50 transition-colors">
-                                <td class="p-3">#{{ $loop->iteration }}</td>
+                                <td class="p-3">#{{ $ebooks->firstItem() + $loop->index }}</td>
+
                                 <td class="p-3">
                                     <img src="{{ asset('storage/' . $ebook->cover) }}" class="w-16 h-20 object-cover rounded" />
                                 </td>
