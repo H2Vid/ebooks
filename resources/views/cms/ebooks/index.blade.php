@@ -1,7 +1,7 @@
 @extends('layouts.cms')
 
 @section('content')
-<div class="relative mx-auto px-6 py-10 min-h-screen bg-gray-50">
+<div class="relative mx-auto px-6 py-10  bg-gray-50">
 
     <div class="relative z-10">
         <div class="flex justify-between items-center mb-6">

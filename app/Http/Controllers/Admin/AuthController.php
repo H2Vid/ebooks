@@ -91,8 +91,9 @@ public function login(Request $request)
 
     public function dashboard()
     {
-        $ebooks = Ebook::latest()->get();
-    return view('cms.dashboard', compact('ebooks'));
+         $totalEbooks = Ebook::count(); // hitung total eBook di database
+         $ebooks = Ebook::latest()->take(5)->get(); // ambil 5 eBook terbaru
+         return view('cms.dashboard', compact('ebooks', 'totalEbooks'));
     }
 
     public function logout(Request $request)

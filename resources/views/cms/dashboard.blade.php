@@ -20,7 +20,7 @@
         {{-- Statistik dan waktu --}}
         <div class="flex justify-between mb-12 w-full">
             <div class="w-auto bg-white rounded-lg shadow p-5 flex flex-col items-center justify-center">
-                <div class="text-5xl font-bold text-green-600">{{ $ebooks->count() }}</div>
+                <div class="text-5xl font-bold text-green-600">{{ $totalEbooks }}</div>
                 <div class="mt-2 text-gray-600 uppercase tracking-wide font-semibold text-sm">Total eBook</div>
             </div>
             <div class=" w-auto bg-white rounded-lg shadow p-5 flex flex-col justify-center">
