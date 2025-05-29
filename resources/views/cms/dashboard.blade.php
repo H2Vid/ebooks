@@ -73,11 +73,10 @@
                         <div class="flex gap-2">
                             <a href="{{ route('cms.ebooks.edit', $ebook->id) }}"
                                 class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm rounded transition">Edit</a>
-                            <form action="{{ route('cms.ebooks.destroy', $ebook->id) }}" method="POST"
-                                  onsubmit="return confirm('Yakin ingin menghapus eBook ini?')">
+                            <form action="{{ route('cms.ebooks.destroy', $ebook->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded transition">Hapus</button>
+                                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded transition btn btn-danger btn-sm btn-confirm-delete">Hapus</button>
                             </form>
                         </div>
                     </div>
@@ -113,14 +112,13 @@
                                 class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm rounded transition">
                                 Edit
                             </a>
-                            <form action="{{ route('cms.ebooks.destroy', $ebook->id) }}" method="POST"
-                                  onsubmit="return confirm('Yakin ingin menghapus eBook ini?')">
+                             <form action="{{ route('cms.ebooks.destroy', $ebook->id) }}" method="POST" class="d-inline delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded transition">
-                                    Hapus
-                                </button>
+                                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-sm rounded transition btn btn-danger btn-sm btn-confirm-delete">Hapus</button>
                             </form>
+
+
                         </div>
                     </td>
                 </tr>
@@ -136,6 +134,9 @@
 @endsection
 
 @push('scripts')
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     // Toggle Layout
     const gridView = document.getElementById('gridView');
@@ -205,5 +206,31 @@
     currentTimezone = e.target.value;
     updateClock(currentTimezone);
   });
+
+  //toast hapus
+   document.addEventListener('DOMContentLoaded', function () {
+        const deleteButtons = document.querySelectorAll('.btn-confirm-delete');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+
+                Swal.fire({
+                    title: 'Yakin ingin menghapus?',
+                    text: "Data tidak bisa dikembalikan setelah dihapus!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, hapus!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
 </script>
 @endpush
