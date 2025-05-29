@@ -11,9 +11,9 @@ class EbooksLandingController extends Controller
 {
     public function landing()
     {
+
         // Ambil 6 eBook terbaru dari database
         $ebooks = Ebook::orderBy('published_at', 'desc')->get();
-
         return view('ebooks.landing', compact('ebooks'));
     }
 
@@ -24,11 +24,16 @@ class EbooksLandingController extends Controller
         return view('ebooks.index', compact('ebooks'));
     }
 
-    public function show($slug)
-    {
-          $ebook = Ebook::get()->first(function ($item) use ($slug) {
+   public function show($slug)
+{
+    $ebook = Ebook::all()->first(function ($item) use ($slug) {
         return Str::slug($item->title) === $slug;
     });
-        return view('ebooks.show', compact('ebook'));
-    }
+
+    abort_unless($ebook, 404);
+
+    $latestEbooks = Ebook::latest()->take(5)->get();
+
+    return view('ebooks.show', compact('ebook', 'latestEbooks'));
+}
 }
