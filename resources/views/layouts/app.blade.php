@@ -9,24 +9,48 @@
 <body class="bg-gray-50">
 
   {{-- NAVBAR TRANSPARAN --}}
-   <header id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 ease-in-out bg-transparent">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <a href="/" class="text-2xl font-bold transition-all duration-300" id="logo-text">eBook ASN</a>
-      <button id="menu-toggle" class="md:hidden text-white focus:outline-none">
-        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
-          <path d="M4 6h16M4 12h16M4 18h16"/>
-        </svg>
-      </button>
-      <nav id="menu" class="hidden md:flex space-x-6">
-        <a href="/" class="text-white hover:text-blue-200 transition">Beranda</a>
-        <a href="/ebooks" class="text-white hover:text-blue-200 transition">Daftar eBook</a>
-      </nav>
-    </div>
-    <div id="mobile-menu" class="md:hidden px-4 pb-4 hidden bg-white shadow">
-      <a href="/" class="block py-2 text-gray-700 hover:text-blue-600">Beranda</a>
-      <a href="/ebooks" class="block py-2 text-gray-700 hover:text-blue-600">Daftar eBook</a>
-    </div>
-  </header>
+  <header id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 ease-in-out bg-transparent">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    {{-- Logo --}}
+    <a href="/" class="text-2xl font-bold transition-all duration-300 text-white" id="logo-text">eBook ASN</a>
+
+    {{-- Hamburger Button --}}
+    <button id="menu-toggle" class="md:hidden focus:outline-none">
+  <svg class="w-6 h-6 text-white transition duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+  </svg>
+</button>
+
+    {{-- Desktop Menu --}}
+    <nav id="menu" class="hidden md:flex space-x-6">
+      <a href="/" class="text-white hover:text-blue-400 transition font-medium">Beranda</a>
+      @php
+  $isLandingPage = request()->is('/');
+@endphp
+
+<a href="{{ $isLandingPage ? '#listebook' : url('/#listebook') }}"
+   class=" text-white hover:text-blue-600 transition">
+   eBook
+</a>
+
+    </nav>
+  </div>
+
+  {{-- Mobile Menu --}}
+  <div id="mobile-menu" class="md:hidden px-4 pb-4 hidden bg-white shadow">
+    <a href="/" class="block py-2 text-gray-700 hover:text-blue-600">Beranda</a>
+    @php
+  $isLandingPage = request()->is('/');
+@endphp
+
+<a href="{{ $isLandingPage ? '#listebook' : url('/#listebook') }}"
+   class=" text-gray-700 hover:text-blue-600 transition">
+ eBook
+</a>
+
+  </div>
+</header>
+
 
   {{-- CONTENT --}}
   <main class="min-h-screen">
@@ -89,6 +113,65 @@
       }
     });
   </script>
+
+
+//nav responsive
+<script>
+  const menuToggle = document.getElementById("menu-toggle");
+  const mobileMenu = document.getElementById("mobile-menu");
+  const hamburgerIcon = menuToggle.querySelector("svg");
+
+  menuToggle.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+  });
+
+  // ✅ Tutup menu saat klik link di mobile
+  document.querySelectorAll("#mobile-menu a").forEach(link => {
+    link.addEventListener("click", () => {
+      mobileMenu.classList.add("hidden");
+    });
+  });
+
+  // ✅ Scroll behavior
+  window.addEventListener("scroll", function () {
+    const navbar = document.getElementById("navbar");
+    const logoText = document.getElementById("logo-text");
+    const links = navbar.querySelectorAll("nav a");
+
+    if (window.scrollY > 50) {
+      navbar.classList.remove("bg-transparent");
+      navbar.classList.add("bg-white", "shadow");
+      logoText.classList.remove("text-white");
+      logoText.classList.add("text-blue-700");
+
+      links.forEach(link => {
+        link.classList.remove("text-white");
+        link.classList.add("text-gray-800");
+      });
+
+      hamburgerIcon.classList.remove("text-white");
+      hamburgerIcon.classList.add("text-gray-800");
+    } else {
+      navbar.classList.add("bg-transparent");
+      navbar.classList.remove("bg-white", "shadow");
+      logoText.classList.add("text-white");
+      logoText.classList.remove("text-blue-700");
+
+      links.forEach(link => {
+        link.classList.add("text-white");
+        link.classList.remove("text-gray-800");
+      });
+
+      hamburgerIcon.classList.add("text-white");
+      hamburgerIcon.classList.remove("text-gray-800");
+    }
+  });
+
+  // Jalankan scroll efek saat pertama load
+  window.dispatchEvent(new Event("scroll"));
+</script>
+
+
 
 </body>
 </html>

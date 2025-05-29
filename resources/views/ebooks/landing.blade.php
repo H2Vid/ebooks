@@ -33,10 +33,9 @@
 
 </section>
 
-{{-- Bagian eBook Terbaru --}}
-<section class="py-16 bg-gray-50">
+<section id="listebook" class="py-16 bg-gray-50">
   <div class="max-w-6xl mx-auto px-4">
-    <h2 class="text-2xl md:text-3xl font-bold mb-10 border-b pb-4 text-center">eBook Terbaru</h2>
+    <h2 class="text-2xl md:text-3xl font-bold mb-10 border-b pb-4 text-center">Sumber belajar untuk semua!</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
       @foreach($ebooks as $ebook)
         <div class="bg-white rounded-xl shadow hover:shadow-md transition overflow-hidden">
