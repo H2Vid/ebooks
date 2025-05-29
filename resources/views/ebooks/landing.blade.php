@@ -16,18 +16,19 @@
   <p class="mt-4 text-lg text-gray-200 max-w-xl">
     Unduh eBook bermanfaat dan tingkatkan kompetensi ASN Anda
   </p>
-  <form action="{{ url('/ebooks') }}" method="GET" class="mt-8 w-full ">
-    <div class="flex items-center border border-gray-300 rounded-full px-4 py-2 bg-white shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
-      <input type="text" name="q" placeholder="Cari eBook..." class="flex-1 outline-none text-gray-700 bg-transparent" />
-      <button type="submit" class="text-gray-500 hover:text-blue-600">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" />
-        </svg>
-      </button>
-    </div>
-  </form>
+  <form action="{{ route('ebooks.search') }}" method="GET" class="mt-8 w-full ">
+  <div class="flex items-center border border-gray-300 rounded-full px-4 py-2 bg-white shadow-sm focus-within:ring-2 focus-within:ring-blue-500">
+    <input type="text" name="q" placeholder="Cari eBook..." class="flex-1 outline-none text-gray-700 bg-transparent" required />
+    <button type="submit" class="text-gray-500 hover:text-blue-600">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M21 21l-4.35-4.35M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" />
+      </svg>
+    </button>
+  </div>
+</form>
+
   </div>
 
 </section>

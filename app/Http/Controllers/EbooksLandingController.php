@@ -36,4 +36,39 @@ class EbooksLandingController extends Controller
 
     return view('ebooks.show', compact('ebook', 'latestEbooks'));
 }
+public function search(Request $request)
+{
+    $query = $request->input('q');
+
+    if (!$query) {
+        // Kalau query kosong, redirect ke halaman ebook biasa atau landing page
+        return redirect('/ebooks');
+    }
+
+    // Cari eBook yang judulnya mirip (LIKE)
+    $matchedEbooks = Ebook::where('title', 'LIKE', '%' . $query . '%')->get();
+
+    $count = $matchedEbooks->count();
+
+    if ($count === 0) {
+        // Tidak ditemukan, bisa kirim ke halaman hasil pencarian dengan pesan kosong
+        return view('ebooks.search', [
+            'ebooks' => $matchedEbooks,
+            'query' => $query,
+            'message' => 'Tidak ditemukan eBook dengan kata kunci tersebut.'
+        ]);
+    } elseif ($count === 1) {
+        // Jika cuma 1 hasil, redirect ke halaman detail eBook
+        $ebook = $matchedEbooks->first();
+        return redirect('/ebooks/' . Str::slug($ebook->title));
+    } else {
+        // Kalau banyak hasil, tampilkan halaman hasil pencarian daftar eBook
+        return view('ebooks.search', [
+            'ebooks' => $matchedEbooks,
+            'query' => $query,
+            'message' => null
+        ]);
+    }
+}
+
 }
