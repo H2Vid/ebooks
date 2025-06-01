@@ -194,28 +194,34 @@
     </aside>
 
     <!-- Content Area -->
-    <main class="flex-1 overflow-y-auto p-6 flex flex-col">
-        <article class="prose max-w-none flex-grow" x-html="content"></article>
+    <!-- Content Area -->
+<main class="flex-1 overflow-y-auto p-6 flex flex-col items-center text-2xl">
+    <article
+      class="prose max-w-none flex-grow bg-white p-10 rounded-lg shadow-lg"
+      style="width: 800px; height: 1100px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); overflow-y: auto;"
+      x-html="content"
+    ></article>
 
-        <!-- Next & Prev Buttons -->
-        <div class="mt-4 flex justify-between">
-            <button
-                class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-                :disabled="activeSubIndex === 0"
-                @click="goPrev()"
-            >
-                &larr; Prev
-            </button>
+    <!-- Next & Prev Buttons -->
+    <div class="mt-4 flex justify-between w-[800px]">
+        <button
+            class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+            :disabled="activeSubIndex === 0"
+            @click="goPrev()"
+        >
+            &larr; Prev
+        </button>
 
-            <button
-                class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
-                :disabled="activeSubIndex === subchapters.length - 1"
-                @click="goNext()"
-            >
-                Next &rarr;
-            </button>
-        </div>
-    </main>
+        <button
+            class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50"
+            :disabled="activeSubIndex === subchapters.length - 1"
+            @click="goNext()"
+        >
+            Next &rarr;
+        </button>
+    </div>
+</main>
+
 </div>
 
  <footer class="bg-white border-t mt-12 py-10 text-sm text-gray-600">
