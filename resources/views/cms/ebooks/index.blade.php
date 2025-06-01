@@ -2,6 +2,13 @@
 
 @section('content')
 <div class="relative mx-auto px-6 py-10  bg-gray-50">
+@if(session('success'))
+  <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6" role="alert">
+    <strong>Berhasil!</strong> {{ session('success') }}
+  </div>
+@endif
+
+{{-- Lanjutkan tampilan daftar ebook --}}
 
     <div class="relative z-10">
         <div class="flex justify-between items-center mb-6">
@@ -40,7 +47,9 @@
                                 <td class="p-3">#{{ $ebooks->firstItem() + $loop->index }}</td>
 
                                 <td class="p-3">
-                                    <img src="{{ asset('storage/' . $ebook->cover) }}" class="w-16 h-20 object-cover rounded" />
+
+                                <img src="{{ asset('storage/' . $ebook->cover_path) }}" alt="Cover eBook" class="w-48 rounded" />
+
                                 </td>
                                 <td class="p-3 font-medium">{{ $ebook->title }}</td>
                                 <td class="p-3">{{ $ebook->author }}</td>
@@ -69,10 +78,10 @@
 </div>
 
             {{-- TAMPILAN GRID --}}
-            <div id="gridView" class=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <div id="gridView" class=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-6">
                 @foreach($ebooks as $ebook)
                     <div class="bg-white p-4 rounded shadow border">
-                        <img src="{{ asset('storage/' . $ebook->cover) }}" class="w-full h-40 object-cover mb-3 rounded" />
+                            <img src="{{ asset('storage/' . $ebook->cover_path) }}" alt="Cover eBook" class="h-[60%] w-full rounded" />
                         <h4 class="text-lg font-semibold">{{ $ebook->title }}</h4>
                         <p class="text-sm text-gray-600">Penulis: {{ $ebook->author }}</p>
                         <p class="text-sm text-gray-500 mb-3">

@@ -64,7 +64,7 @@
             <div id="gridView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($ebooks as $ebook)
                     <div class="bg-white p-4 rounded shadow border relative">
-                        <img src="{{ asset('storage/' . $ebook->cover) }}" class="w-full h-40 object-cover mb-3 rounded" alt="Cover eBook" />
+                        <img src="{{ asset('storage/' . $ebook->cover_path) }}" class="w-full h-40 object-cover mb-3 rounded" alt="Cover eBook" />
                         <h4 class="text-lg font-semibold">{{ $ebook->title }}</h4>
                         <p class="text-sm text-gray-600">Penulis: {{ $ebook->author }}</p>
                         <p class="text-sm text-gray-500 mb-3">
@@ -101,7 +101,7 @@
                 <tr class="border-t border-green-200 hover:bg-green-50 transition-colors">
                     <td class="p-3 align-middle">#{{ $loop->iteration }}</td>
                     <td class="p-3">
-                        <img src="{{ asset('storage/' . $ebook->cover) }}" alt="Cover eBook" class="w-16 h-20 object-cover rounded" />
+                        <img src="{{ asset('storage/' . $ebook->cover_path) }}" alt="Cover eBook" class="w-16 h-20 object-cover rounded" />
                     </td>
                     <td class="p-3 align-middle font-medium text-gray-950">{{ $ebook->title }}</td>
                     <td class="p-3 align-middle text-gray-950">{{ $ebook->author }}</td>

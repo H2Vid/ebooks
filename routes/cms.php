@@ -20,6 +20,14 @@ Route::prefix('cms')->name('cms.')->group(function () {
         Route::get('/dashboard',[AuthController::class, 'dashboard'])->name('dashboard');
 
         // resource eBook — cukup sekali dan beri nama “ebooks”
-        Route::resource('ebooks', EbookController::class)->names('ebooks');
+       Route::prefix('ebooks')->name('ebooks.')->group(function () {
+    Route::get('/', [EbookController::class, 'index'])->name('index');
+    Route::get('/create', [EbookController::class, 'create'])->name('create');
+    Route::post('/', [EbookController::class, 'store'])->name('store');
+    Route::get('/{ebook}/edit', [EbookController::class, 'edit'])->name('edit');
+    Route::patch('/{ebook}', [EbookController::class, 'update'])->name('update'); // <-- ini
+    Route::delete('/{ebook}', [EbookController::class, 'destroy'])->name('destroy');
+});
+
     });
 });

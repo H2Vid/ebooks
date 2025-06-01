@@ -10,13 +10,11 @@ Route::get('/ebooks', [EbooksLandingController::class, 'index']);
 Route::get('/ebooks/search', [EbooksLandingController::class, 'search'])->name('ebooks.search');
 Route::get('/ebooks/{slug}', [EbooksLandingController::class, 'show']);
 Route::get('/ebooks/{slug}/read', function ($slug) {
-    $ebook = Ebook::get()->first(function ($item) use ($slug) {
+    $ebook = Ebook::all()->first(function ($item) use ($slug) {
         return Str::slug($item->title) === $slug;
     });
 
     abort_unless($ebook, 404);
 
-    $pdfPath = asset('storage/' . $ebook->file);
-    return redirect("/pdfjs/web/viewer.html?file=$pdfPath");
+    return view('ebooks.read', compact('ebook'));
 });
-
