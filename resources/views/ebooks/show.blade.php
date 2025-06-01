@@ -4,7 +4,8 @@
 
 {{-- Hero Section --}}
 <section class="relative bg-cover bg-center h-96 flex items-center justify-center text-center text-white"
-         style="background-image: url('{{ asset('storage/' . $ebook->cover) }}')">
+         style="background-image: url('{{ asset('storage/' . $ebook->cover_path) }}')">
+
   <div class="absolute inset-0 bg-black opacity-60"></div>
 </section>
 
@@ -16,7 +17,7 @@
     <h2 class="text-2xl font-bold">{{ $ebook->title }}</h2>
     <p class="text-gray-600 mt-2">
       Oleh: {{ $ebook->author }} |
-      Diunggah: {{ \Carbon\Carbon::parse($ebook->published_at)->translatedFormat('d F Y') }}
+      Diunggah: {{ \Carbon\Carbon::parse($ebook->release_date)->translatedFormat('d F Y') }}
     </p>
 
     <div class="mt-6 flex gap-4">
@@ -24,7 +25,7 @@
          class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
          📥 Unduh eBook
       </a>
-      <a href="{{ url('/ebooks/' . Str::slug($ebook->title) . '/read') }}" target="_blank"
+      <a href="{{ route('ebooks.read', Str::slug($ebook->title)) }}" target="_blank"
          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
          📖 Baca Sekarang
       </a>

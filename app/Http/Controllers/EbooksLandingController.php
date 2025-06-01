@@ -6,69 +6,89 @@ use App\Models\Ebook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-
 class EbooksLandingController extends Controller
 {
+    /* ─────────  LANDING  ( '/' )  ───────── */
     public function landing()
     {
+        // 6 eBook terbaru (pakai release_date, fallback created_at)
+        $ebooks = Ebook::orderByDesc('release_date')
+                       ->orderByDesc('created_at')
+                       ->take(6)
+                       ->get();
 
-        // Ambil 6 eBook terbaru dari database
-        $ebooks = Ebook::orderBy('published_at', 'desc')->get();
         return view('ebooks.landing', compact('ebooks'));
     }
 
+    /* ─────────  LIST SEMUA  ( '/ebooks' )  ───────── */
     public function index()
     {
-        // Daftar semua eBook (optional: pagination)
-        $ebooks = Ebook::latest('published_at')->paginate(9);
+        $ebooks = Ebook::orderByDesc('release_date')
+                       ->orderByDesc('created_at')
+                       ->paginate(9);
+
         return view('ebooks.index', compact('ebooks'));
     }
 
-   public function show($slug)
-{
-    $ebook = Ebook::all()->first(function ($item) use ($slug) {
-        return Str::slug($item->title) === $slug;
-    });
+    /* ─────────  DETAIL  ( '/ebooks/{slug}' )  ───────── */
+    public function show(string $slug)
+    {
+        // Cari langsung di DB menggunakan slug(title)
+        $ebook = Ebook::whereRaw("LOWER(REPLACE(title,' ', '-')) = ?", [$slug])
+                      ->first();
 
-    abort_unless($ebook, 404);
+        // Fallback safety (jika DB tidak case‑match)    ⤵
+        if (!$ebook) {
+            $ebook = Ebook::get()->first(fn ($e) => Str::slug($e->title) === $slug);
+        }
 
-    $latestEbooks = Ebook::latest()->take(5)->get();
+        abort_unless($ebook, 404);
 
-    return view('ebooks.show', compact('ebook', 'latestEbooks'));
-}
-public function search(Request $request)
-{
-    $query = $request->input('q');
+        $latestEbooks = Ebook::latest()->take(5)->get();
 
-    if (!$query) {
-        // Kalau query kosong, redirect ke halaman ebook biasa atau landing page
-        return redirect('/ebooks');
+        return view('ebooks.show', compact('ebook', 'latestEbooks'));
     }
 
-    // Cari eBook yang judulnya mirip (LIKE)
-    $matchedEbooks = Ebook::where('title', 'LIKE', '%' . $query . '%')->get();
+    /* ─────────  BACA  ( '/ebooks/{slug}/read' )  ───────── */
+    public function read(string $slug)
+    {
+        $ebook = Ebook::whereRaw("LOWER(REPLACE(title,' ', '-')) = ?", [$slug])
+                      ->first();
 
-    $count = $matchedEbooks->count();
+        if (!$ebook) {
+            $ebook = Ebook::get()->first(fn ($e) => Str::slug($e->title) === $slug);
+        }
 
-    if ($count === 0) {
-        // Tidak ditemukan, bisa kirim ke halaman hasil pencarian dengan pesan kosong
-        return view('ebooks.search', [
-            'ebooks' => $matchedEbooks,
-            'query' => $query,
-            'message' => 'Tidak ditemukan eBook dengan kata kunci tersebut.'
-        ]);
-    } elseif ($count === 1) {
-        // Jika cuma 1 hasil, redirect ke halaman detail eBook
-        $ebook = $matchedEbooks->first();
-        return redirect('/ebooks/' . Str::slug($ebook->title));
-    } else {
-        // Kalau banyak hasil, tampilkan halaman hasil pencarian daftar eBook
-        return view('ebooks.search', [
-            'ebooks' => $matchedEbooks,
-            'query' => $query,
-            'message' => null
-        ]);
+        abort_unless($ebook, 404);
+
+        return view('ebooks.read', compact('ebook'));
     }
-}
 
+    /* ─────────  SEARCH  ( '/ebooks/search?q=...' )  ───────── */
+    public function search(Request $request)
+    {
+        $query = trim($request->input('q'));
+
+        if ($query === '') {
+            return redirect()->route('ebooks.index');
+        }
+
+        $ebooks = Ebook::where('title', 'LIKE', "%{$query}%")->get();
+        $count  = $ebooks->count();
+
+        // 0 hasil
+        if ($count === 0) {
+            return view('ebooks.search', compact('ebooks', 'query'))
+                   ->with('message', 'Tidak ditemukan eBook dengan kata kunci tersebut.');
+        }
+
+        // 1 hasil → langsung redirect ke detail
+        if ($count === 1) {
+            $ebook = $ebooks->first();
+            return redirect()->route('ebooks.show', Str::slug($ebook->title));
+        }
+
+        // >1 hasil → tampilkan daftar
+        return view('ebooks.search', compact('ebooks', 'query'));
+    }
 }

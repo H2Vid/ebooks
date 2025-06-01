@@ -1,20 +1,16 @@
 <?php
 
-use App\Models\Ebook;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ebookController;
+use Illuminate\Support\Str;
 use App\Http\Controllers\EbooksLandingController;
 
-Route::get('/', [EbooksLandingController::class, 'landing']);
-Route::get('/ebooks', [EbooksLandingController::class, 'index']);
+/* ── Landing & Listing ── */
+Route::get('/',              [EbooksLandingController::class, 'landing'])->name('landing');
+Route::get('/ebooks',        [EbooksLandingController::class, 'index'])->name('ebooks.index');
+
+/* ── Search (dideklarasikan sebelum slug) ── */
 Route::get('/ebooks/search', [EbooksLandingController::class, 'search'])->name('ebooks.search');
-Route::get('/ebooks/{slug}', [EbooksLandingController::class, 'show']);
-Route::get('/ebooks/{slug}/read', function ($slug) {
-    $ebook = Ebook::all()->first(function ($item) use ($slug) {
-        return Str::slug($item->title) === $slug;
-    });
 
-    abort_unless($ebook, 404);
-
-    return view('ebooks.read', compact('ebook'));
-});
+/* ── Detail & Baca ── */
+Route::get('/ebooks/{slug}',          [EbooksLandingController::class, 'show'])->name('ebooks.show');
+Route::get('/ebooks/{slug}/read',     [EbooksLandingController::class, 'read'])->name('ebooks.read');
