@@ -21,10 +21,12 @@
     </p>
 
     <div class="mt-6 flex gap-4">
-      <a href="{{ asset('storage/' . $ebook->file) }}" download
-         class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-         📥 Unduh eBook
-      </a>
+      <a href="{{ asset('storage/' . $ebook->pdf_path) }}" download
+   class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+   📥 Unduh eBook
+</a>
+
+
       <a href="{{ route('ebooks.read', Str::slug($ebook->title)) }}" target="_blank"
          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
          📖 Baca Sekarang
