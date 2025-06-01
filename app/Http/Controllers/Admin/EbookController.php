@@ -8,67 +8,91 @@ use Illuminate\Http\Request;
 
 class EbookController extends Controller
 {
-    // Tampilkan semua eBook (index)
+
+    /* ───────────────── Index & Create ───────────────── */
+
     public function index()
     {
         $ebooks = Ebook::latest()->paginate(9);
         return view('cms.ebooks.index', compact('ebooks'));
     }
 
-    // Form tambah eBook
     public function create()
     {
+        /* Form UTAMA saja (tanpa bab) */
         return view('cms.ebooks.create');
     }
 
-    // Simpan eBook baru
+    /* ───────────────── STORE (utama) ───────────────── */
+
     public function store(Request $request)
     {
+        /* ⤵︎ hanya validasi data utama */
         $validated = $request->validate([
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'author' => 'required|string',
-            'release_date' => 'required|date',
-            'cover' => 'required|image',
-            'pdf' => 'required|mimes:pdf',
-            'chapters' => 'required|array',
-            'chapters.*.title' => 'required|string',
-            'chapters.*.subchapters' => 'required|array',
-            'chapters.*.subchapters.*.title' => 'required|string',
-            'chapters.*.subchapters.*.content' => 'required|string',
+            'title'         => 'required|string',
+            'description'   => 'required|string',
+            'author'        => 'required|string',
+            'release_date'  => 'required|date',
+            'cover'         => 'required|image',
+            'pdf'           => 'required|mimes:pdf',
         ]);
 
-        // Simpan file cover
-        $coverPath = $request->file('cover')->store('covers', 'public');
+        /* simpan files */
+        $validated['cover_path'] = $request->file('cover')
+                                           ->store('covers', 'public');
+        $validated['pdf_path']   = $request->file('pdf')
+                                           ->store('pdfs', 'public');
 
-        // Simpan file PDF
-        $pdfPath = $request->file('pdf')->store('pdfs', 'public');
+        $ebook = Ebook::create($validated);
 
-        // Simpan data eBook
-        $ebook = Ebook::create([
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'author' => $validated['author'],
-            'release_date' => $validated['release_date'],
-            'cover_path' => $coverPath,
-            'pdf_path' => $pdfPath,
+        /* 🔀 redirect ke konfirmasi */
+        return redirect()->route('cms.ebooks.confirm-chapters', $ebook->id);
+    }
+
+    /* ───────────────── KONFIRMASI ───────────────── */
+
+    public function confirmAddChapters(Ebook $ebook)
+    {
+        /* view dengan SweetAlert “Tambah chapter?” */
+        return view('cms.ebooks.confirm-chapters', compact('ebook'));
+    }
+
+    /* ───────────────── FORM CHAPTER ───────────────── */
+
+    public function createChapters(Ebook $ebook)
+    {
+        /* tampilkan form bab‑subbab saja */
+        return view('cms.ebooks.create-chapters', compact('ebook'));
+    }
+
+    /* ───────────────── STORE CHAPTER ───────────────── */
+
+    public function storeChapters(Request $request, Ebook $ebook)
+    {
+        $validated = $request->validate([
+            'chapters'                                   => 'required|array',
+            'chapters.*.title'                           => 'required|string',
+            'chapters.*.subchapters'                     => 'required|array',
+            'chapters.*.subchapters.*.title'             => 'required|string',
+            'chapters.*.subchapters.*.content'           => 'required|string',
         ]);
 
-        // Simpan chapters dan subchapters
+        /* simpan relasi */
         foreach ($validated['chapters'] as $chapterData) {
             $chapter = $ebook->chapters()->create([
                 'title' => $chapterData['title'],
             ]);
 
-            foreach ($chapterData['subchapters'] as $subchapterData) {
+            foreach ($chapterData['subchapters'] as $subData) {
                 $chapter->subchapters()->create([
-                    'title' => $subchapterData['title'],
-                    'content' => $subchapterData['content'],
+                    'title'   => $subData['title'],
+                    'content' => $subData['content'],
                 ]);
             }
         }
 
-        return redirect()->route('cms.ebooks.index')->with('success', 'eBook berhasil disimpan.');
+        return redirect()->route('cms.ebooks.index')
+                         ->with('success', 'eBook & chapter berhasil disimpan.');
     }
 
     // Form edit eBook
