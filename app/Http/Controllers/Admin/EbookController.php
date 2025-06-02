@@ -67,33 +67,41 @@ class EbookController extends Controller
 
     /* ───────────────── STORE CHAPTER ───────────────── */
 
-    public function storeChapters(Request $request, Ebook $ebook)
-    {
-        $validated = $request->validate([
-            'chapters'                                   => 'required|array',
-            'chapters.*.title'                           => 'required|string',
-            'chapters.*.subchapters'                     => 'required|array',
-            'chapters.*.subchapters.*.title'             => 'required|string',
-            'chapters.*.subchapters.*.content'           => 'required|string',
+   public function storeChapters(Request $request, Ebook $ebook)
+{
+    $validated = $request->validate([
+        'chapters'                                      => 'required|array',
+        'chapters.*.title'                              => 'required|string',
+        'chapters.*.subchapters'                        => 'required|array',
+        'chapters.*.subchapters.*.title'                => 'required|string',
+        'chapters.*.subchapters.*.images'               => 'required|array|min:1',
+        'chapters.*.subchapters.*.images.*'             => 'image|max:2048', // 2 MB/halaman
+    ]);
+
+    foreach ($validated['chapters'] as $chap) {
+        $chapter = $ebook->chapters()->create([
+            'title' => $chap['title'],
         ]);
 
-        /* simpan relasi */
-        foreach ($validated['chapters'] as $chapterData) {
-            $chapter = $ebook->chapters()->create([
-                'title' => $chapterData['title'],
-            ]);
-
-            foreach ($chapterData['subchapters'] as $subData) {
-                $chapter->subchapters()->create([
-                    'title'   => $subData['title'],
-                    'content' => $subData['content'],
-                ]);
+        foreach ($chap['subchapters'] as $sub) {
+            // upload semua gambar halaman
+            $savedImages = [];
+            foreach ($sub['images'] as $imgFile) {
+                $path = $imgFile->store('ebook_pages', 'public');
+                $savedImages[] = $path;
             }
+            $chapter->subchapters()->create([
+                'title'   => $sub['title'],
+                'content' => json_encode($savedImages), // simpan list halaman
+            ]);
         }
-
-        return redirect()->route('cms.ebooks.index')
-                         ->with('success', 'eBook & chapter berhasil disimpan.');
     }
+
+    return redirect()
+            ->route('cms.ebooks.index')
+            ->with('success', 'eBook & chapter berhasil disimpan.');
+}
+
 
     // Form edit eBook
     public function edit(Ebook $ebook)

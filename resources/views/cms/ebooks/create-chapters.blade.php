@@ -7,6 +7,7 @@
   <form id="chapterForm"
         method="POST"
         action="{{ route('cms.ebooks.chapters.store', $ebook->id) }}"
+        enctype="multipart/form-data"
         class="space-y-6" novalidate>
     @csrf
 
@@ -28,16 +29,11 @@
   </form>
 </div>
 
-{{-- Quill --}}
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
 <script>
-  const quillSubchapterEditors = new Map();
   const chaptersContainer = document.getElementById('chapters');
   let chapterCount = 0;
 
-  /* Tambah Bab */
+  // Tambah Bab
   document.getElementById('addChapter').addEventListener('click', () => {
     const chapterId = chapterCount++;
     const chapterDiv = document.createElement('div');
@@ -62,14 +58,14 @@
     chaptersContainer.appendChild(chapterDiv);
   });
 
-  /* Delegasi klik */
+  // Delegasi klik
   chaptersContainer.addEventListener('click', e => {
-    /* Tambah Subbab */
+    // Tambah Subbab
     if (e.target.classList.contains('addSubchapter')) {
       const chapterId = e.target.dataset.chapter;
-      const subDiv    = document.getElementById(`chapter-${chapterId}-subchapters`);
-      const subId     = subDiv.childElementCount;
-      const editorId  = `chapter${chapterId}_sub${subId}_editor`;
+      const subDiv = document.getElementById(`chapter-${chapterId}-subchapters`);
+      const subId = subDiv.childElementCount;
+      const previewId = `chapter${chapterId}_sub${subId}_preview`;
 
       const wrapper = document.createElement('div');
       wrapper.className = 'border p-3 rounded-md bg-gray-50 mb-3 subchapter';
@@ -82,52 +78,83 @@
                name="chapters[${chapterId}][subchapters][${subId}][title]"
                class="w-full border p-2 rounded-md mb-2" required>
 
-        <label class="block font-semibold mb-1">Isi Subbab</label>
-        <div id="${editorId}" class="quillEditor bg-white border rounded min-h-[120px]"></div>
+        <label class="block font-semibold mb-1">Upload Gambar Konten (Multiple)</label>
+        <input type="file"
+               class="subchapter-images-input border p-2 rounded w-full mb-2"
+               multiple accept="image/*"
+               data-chapter="${chapterId}"
+               data-sub="${subId}"
+               data-preview-id="${previewId}">
+        <div id="${previewId}" class="flex flex-wrap gap-2"></div>
       `;
       subDiv.appendChild(wrapper);
-
-      setTimeout(() => {
-        const quill = new Quill('#' + editorId, { theme: 'snow' });
-        quillSubchapterEditors.set(editorId, quill);
-      }, 10);
     }
 
-    /* Hapus Bab */
+    // Hapus Bab
     if (e.target.classList.contains('removeChapter')) {
       const chapEl = e.target.closest('.chapter');
-      chapEl.querySelectorAll('.quillEditor').forEach(ed => quillSubchapterEditors.delete(ed.id));
       chapEl.remove();
     }
 
-    /* Hapus Subbab */
+    // Hapus Subbab
     if (e.target.classList.contains('removeSubchapter')) {
       const subEl = e.target.closest('.subchapter');
-      const ed    = subEl.querySelector('.quillEditor');
-      if (ed) quillSubchapterEditors.delete(ed.id);
       subEl.remove();
+    }
+
+    // Hapus Gambar Preview
+    if (e.target.classList.contains('remove-image')) {
+      const container = e.target.closest('.image-preview');
+      const hiddenInput = container.querySelector('input[type="hidden"]');
+      if (hiddenInput) hiddenInput.remove(); // remove input dummy
+      container.remove();
     }
   });
 
-  /* Submit */
-  document.getElementById('saveBtn').addEventListener('click', () => {
-    /* Bersihkan hidden lama */
-    document.querySelectorAll('input[type="hidden"][name^="chapters"]').forEach(el => el.remove());
+  // Preview Gambar & Simpan dalam form
+  document.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('subchapter-images-input')) return;
 
-    /* Tambahkan konten subbab */
-    quillSubchapterEditors.forEach((quill, id) => {
-      if (!document.getElementById(id)) return;   // sudah dihapus
-      const m = id.match(/chapter(\d+)_sub(\d+)_editor/);
-      if (m) {
-        const [ , chapId, subId ] = m;
-        const inp = document.createElement('input');
-        inp.type  = 'hidden';
-        inp.name  = `chapters[${chapId}][subchapters][${subId}][content]`;
-        inp.value = quill.root.innerHTML;
-        chapterForm.appendChild(inp);
-      }
+    const input = e.target;
+    const previewId = input.dataset.previewId;
+    const chapter = input.dataset.chapter;
+    const sub = input.dataset.sub;
+    const container = document.getElementById(previewId);
+
+    Array.from(input.files).forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative image-preview';
+
+        wrapper.innerHTML = `
+          <img src="${ev.target.result}" class="w-24 h-32 object-cover rounded shadow">
+          <button type="button"
+                  class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-5 h-5 text-xs remove-image">×</button>
+        `;
+
+        // Tambahkan file sebagai dummy hidden input agar tetap terkirim
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+
+        const cloneInput = document.createElement('input');
+        cloneInput.type = 'file';
+        cloneInput.name = `chapters[${chapter}][subchapters][${sub}][images][]`;
+        cloneInput.files = dataTransfer.files;
+        cloneInput.className = 'hidden';
+        wrapper.appendChild(cloneInput);
+
+        container.appendChild(wrapper);
+      };
+      reader.readAsDataURL(file);
     });
 
+    // Reset input agar bisa upload gambar yang sama lagi jika perlu
+    input.value = '';
+  });
+
+  // Simpan
+  document.getElementById('saveBtn').addEventListener('click', () => {
     if (chapterForm.checkValidity()) chapterForm.submit();
     else chapterForm.reportValidity();
   });
