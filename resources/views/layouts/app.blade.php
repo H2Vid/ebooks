@@ -8,48 +8,6 @@
 </head>
 <body class="bg-gray-50">
 
-  {{-- NAVBAR TRANSPARAN --}}
-  <header id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 ease-in-out bg-transparent">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-    {{-- Logo --}}
-    <a href="/" class="text-2xl font-bold transition-all duration-300 text-white" id="logo-text">eBook ASN</a>
-
-    {{-- Hamburger Button --}}
-    <button id="menu-toggle" class="md:hidden focus:outline-none">
-  <svg class="w-6 h-6 text-white transition duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-  </svg>
-</button>
-
-    {{-- Desktop Menu --}}
-    <nav id="menu" class="hidden md:flex space-x-6">
-      <a href="/" class="text-white hover:text-blue-400 transition font-medium">Beranda</a>
-      @php
-  $isLandingPage = request()->is('/');
-@endphp
-
-<a href="{{ $isLandingPage ? '#listebook' : url('/#listebook') }}"
-   class=" text-white hover:text-blue-600 transition">
-   eBook
-</a>
-
-    </nav>
-  </div>
-
-  {{-- Mobile Menu --}}
-  <div id="mobile-menu" class="md:hidden px-4 pb-4 hidden bg-white shadow">
-    <a href="/" class="block py-2 text-gray-700 hover:text-blue-600">Beranda</a>
-    @php
-  $isLandingPage = request()->is('/');
-@endphp
-
-<a href="{{ $isLandingPage ? '#listebook' : url('/#listebook') }}"
-   class=" text-gray-700 hover:text-blue-600 transition">
- eBook
-</a>
-
-  </div>
-</header>
 
 
   {{-- CONTENT --}}
