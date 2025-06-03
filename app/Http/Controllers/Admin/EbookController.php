@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Storage;
 use App\Models\Ebook;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class EbookController extends Controller
 {
@@ -111,68 +112,82 @@ class EbookController extends Controller
     }
 
     // Update eBook
-public function update(Request $request, Ebook $ebook)
-{
-    $validated = $request->validate([
-        'title' => 'required|string',
-        'description' => 'required|string',
-        'author' => 'required|string',
-        'release_date' => 'required|date',
-        'cover' => 'nullable|image',  // boleh kosong kalau gak ganti cover
-        'pdf' => 'nullable|mimes:pdf', // boleh kosong kalau gak ganti pdf
-        'chapters' => 'required|array',
-        'chapters.*.title' => 'required|string',
-        'chapters.*.subchapters' => 'required|array',
-        'chapters.*.subchapters.*.title' => 'required|string',
-        'chapters.*.subchapters.*.content' => 'required|string',
-    ]);
 
-    // Jika ada cover baru, simpan dan update path
-    if ($request->hasFile('cover')) {
-        // Hapus file lama jika ada
-        if ($ebook->cover_path && \Storage::disk('public')->exists($ebook->cover_path)) {
-            \Storage::disk('public')->delete($ebook->cover_path);
-        }
-        $coverPath = $request->file('cover')->store('covers', 'public');
-        $ebook->cover_path = $coverPath;
-    }
 
-    // Jika ada PDF baru, simpan dan update path
-    if ($request->hasFile('pdf')) {
-        // Hapus file lama jika ada
-        if ($ebook->pdf_path && \Storage::disk('public')->exists($ebook->pdf_path)) {
-            \Storage::disk('public')->delete($ebook->pdf_path);
-        }
-        $pdfPath = $request->file('pdf')->store('pdfs', 'public');
-        $ebook->pdf_path = $pdfPath;
-    }
-
-    // Update data utama eBook
-    $ebook->title = $validated['title'];
-    $ebook->description = $validated['description'];
-    $ebook->author = $validated['author'];
-    $ebook->release_date = $validated['release_date'];
-    $ebook->save();
-
-    // Update chapters dan subchapters:
-    // Untuk kesederhanaan, kita hapus semua chapters lama lalu simpan yang baru.
-    $ebook->chapters()->delete();
-
-    foreach ($validated['chapters'] as $chapterData) {
-        $chapter = $ebook->chapters()->create([
-            'title' => $chapterData['title'],
+    public function update(Request $request, Ebook $ebook)
+    {
+        $validated = $request->validate([
+            'title'        => 'required|string',
+            'description'  => 'required|string',
+            'author'       => 'required|string',
+            'release_date' => 'required|date',
+            'cover'        => 'nullable|image',
+            'pdf'          => 'nullable|mimes:pdf',
+            'chapters'     => 'required|array',
+            'chapters.*.title' => 'required|string',
+            'chapters.*.subchapters' => 'required|array',
+            'chapters.*.subchapters.*.title' => 'required|string',
         ]);
 
-        foreach ($chapterData['subchapters'] as $subchapterData) {
-            $chapter->subchapters()->create([
-                'title' => $subchapterData['title'],
-                'content' => $subchapterData['content'],
-            ]);
+        // Handle cover
+        if ($request->hasFile('cover')) {
+            if ($ebook->cover_path && Storage::disk('public')->exists($ebook->cover_path)) {
+                Storage::disk('public')->delete($ebook->cover_path);
+            }
+            $ebook->cover_path = $request->file('cover')->store('covers', 'public');
         }
+
+        // Handle PDF
+        if ($request->hasFile('pdf')) {
+            if ($ebook->pdf_path && Storage::disk('public')->exists($ebook->pdf_path)) {
+                Storage::disk('public')->delete($ebook->pdf_path);
+            }
+            $ebook->pdf_path = $request->file('pdf')->store('pdfs', 'public');
+        }
+
+        // Update data utama
+        $ebook->update([
+            'title'        => $validated['title'],
+            'description'  => $validated['description'],
+            'author'       => $validated['author'],
+            'release_date' => $validated['release_date'],
+        ]);
+
+        // Hapus semua chapter dan subchapter lama
+        foreach ($ebook->chapters as $chapter) {
+            $chapter->subchapters()->delete();
+        }
+        $ebook->chapters()->delete();
+
+        // Simpan ulang chapter dan subchapter
+        $chapters = $request->input('chapters', []);
+        foreach ($chapters as $cIdx => $chapterData) {
+            $chapter = $ebook->chapters()->create([
+                'title' => $chapterData['title'],
+            ]);
+
+            if (!empty($chapterData['subchapters'])) {
+                foreach ($chapterData['subchapters'] as $sIdx => $subData) {
+                    $existingImages = $subData['existing_images'] ?? [];
+                    $newFiles = $request->file("chapters.$cIdx.subchapters.$sIdx.images") ?? [];
+
+                    $savedImages = $existingImages;
+                    foreach ($newFiles as $file) {
+                        $path = $file->store('ebook_pages', 'public');
+                        $savedImages[] = $path;
+                    }
+
+                    $chapter->subchapters()->create([
+                        'title'   => $subData['title'],
+                        'content' => json_encode($savedImages),
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('cms.ebooks.index')->with('success', 'eBook berhasil diperbarui.');
     }
 
-    return redirect()->route('cms.ebooks.index')->with('success', 'eBook berhasil diperbarui.');
-}
 public function destroy($id)
 {
     $ebook = Ebook::findOrFail($id);
@@ -183,7 +198,7 @@ public function destroy($id)
     }
 
     // Hapus file PDF jika ada
-    if ($ebook->pdf_path && \Storage::disk('public')->exists($ebook->pdf_path)) {
+    if ($ebook->pdf_path && Storage::disk('public')->exists($ebook->pdf_path)) {
         \Storage::disk('public')->delete($ebook->pdf_path);
     }
 

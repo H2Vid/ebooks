@@ -93,19 +93,14 @@
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 
 <script>
-  /* --- Inisialisasi editor deskripsi --- */
   const quillDescription = new Quill('#quillDescription', { theme: 'snow' });
   quillDescription.root.innerHTML = document.getElementById('description').value;
 
-  /* --- State --- */
-  const chaptersContainer      = document.getElementById('chapters');
-  const quillSubchapterEditors = new Map();   // key = editorId, value = Quill instance
-  let chapterCount = 0;                       // incremental ID bab
+  const chaptersContainer = document.getElementById('chapters');
+  let chapterCount = 0;
 
-  /* ---------- Helper pembuatan bab & subbab ---------- */
   function addSubchapter(chapterId, subchapterId, data = {}) {
-    const editorId = `chapter${chapterId}_subchapter${subchapterId}_editor`;
-
+    const containerId = `chapter${chapterId}_subchapter${subchapterId}_images`;
     const wrapper = document.createElement('div');
     wrapper.className = 'border p-3 rounded-md bg-gray-50 mb-3 subchapter';
     wrapper.innerHTML = `
@@ -118,24 +113,94 @@
              class="w-full border p-2 rounded-md mb-2"
              value="${data.title ?? ''}" required>
 
-      <label class="block font-semibold mb-1">Isi Subbab</label>
-      <div id="${editorId}" class="quillEditor bg-white border rounded min-h-[120px]"></div>
+      <label class="block font-semibold mb-1">Gambar Halaman</label>
+      <div id="${containerId}" class="image-list flex flex-wrap gap-4 mb-2"></div>
+
+      <input type="file"
+             name="chapters[${chapterId}][subchapters][${subchapterId}][images][]"
+             accept="image/*"
+             class="block mb-2"
+             multiple
+             onchange="handleImagePreview(event, '${containerId}', 'chapters[${chapterId}][subchapters][${subchapterId}][images][]')">
     `;
+
     document.getElementById(`chapter-${chapterId}-subchapters`).appendChild(wrapper);
 
-    setTimeout(() => {
-      const quill = new Quill('#' + editorId, { theme: 'snow' });
-      if (data.content) quill.root.innerHTML = data.content;
-      quillSubchapterEditors.set(editorId, quill);
-    }, 10);
+    const imageListEl = document.getElementById(containerId);
+
+    function renderImages(imagePaths) {
+      imageListEl.innerHTML = '';
+      imagePaths.forEach(imgPath => {
+        const fullPath = imgPath.startsWith('http') ? imgPath : '{{ asset("storage") }}/' + imgPath;
+        const imgWrapper = document.createElement('div');
+        imgWrapper.className = 'relative w-24 h-32 border rounded overflow-hidden';
+
+        imgWrapper.innerHTML = `
+          <img src="${fullPath}" alt="Image" class="object-cover w-full h-full">
+          <button type="button" class="removeImage absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+          <input type="hidden" name="chapters[${chapterId}][subchapters][${subchapterId}][existing_images][]" value="${imgPath}">
+        `;
+        imageListEl.appendChild(imgWrapper);
+
+        imgWrapper.querySelector('.removeImage').addEventListener('click', () => {
+          imgWrapper.remove();
+        });
+      });
+    }
+
+    if (data.content) {
+      try {
+        const images = JSON.parse(data.content);
+        if (Array.isArray(images)) {
+          renderImages(images);
+        }
+      } catch (e) {}
+    }
   }
+
+  function handleImagePreview(event, containerId, inputName) {
+  const files = event.target.files;
+  const imageListEl = document.getElementById(containerId);
+
+  [...files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const imgWrapper = document.createElement('div');
+      imgWrapper.className = 'relative w-24 h-32 border rounded overflow-hidden';
+      imgWrapper.innerHTML = `
+        <img src="${e.target.result}" alt="Preview" class="object-cover w-full h-full">
+        <button type="button" class="removeImage absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">×</button>
+      `;
+
+      // Buat dummy input file tersembunyi agar file tetap dikirim saat submit
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      const cloneInput = document.createElement('input');
+      cloneInput.type = 'file';
+      cloneInput.name = inputName;
+      cloneInput.files = dataTransfer.files;
+      cloneInput.className = 'hidden';
+      imgWrapper.appendChild(cloneInput);
+
+      imageListEl.appendChild(imgWrapper);
+
+      imgWrapper.querySelector('.removeImage').addEventListener('click', () => {
+        imgWrapper.remove();
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Reset input asli
+  event.target.value = '';
+}
+
 
   function addChapter(chapterId, data = {}) {
     const chapterDiv = document.createElement('div');
     chapterDiv.className = 'border border-gray-300 p-4 rounded-md chapter';
     chapterDiv.dataset.chapterId = chapterId;
     chapterDiv.id = `chapter-${chapterId}`;
-
     chapterDiv.innerHTML = `
       <div class="flex justify-between items-center mb-2">
         <label class="block font-semibold">Judul Bab</label>
@@ -155,77 +220,40 @@
     `;
     chaptersContainer.appendChild(chapterDiv);
 
-    /* Subbab existing (edit) */
     if (data.subchapters) {
       data.subchapters.forEach((sub, idx) => addSubchapter(chapterId, idx, sub));
     }
   }
 
-  /* ---------- Render data lama (old / model) ---------- */
   const oldChapters = {!! json_encode(old('chapters', $ebook->chapters ?? [])) !!};
   if (oldChapters.length) {
-    oldChapters.forEach((chap, idx) => { addChapter(idx, chap); });
+    oldChapters.forEach((chap, idx) => addChapter(idx, chap));
     chapterCount = oldChapters.length;
   }
 
-  /* ---------- Event delegation (chaptersContainer) ---------- */
   chaptersContainer.addEventListener('click', e => {
-    /* Tambah Subbab */
     if (e.target.classList.contains('addSubchapter')) {
-      const chapterId     = e.target.dataset.chapter;
-      const subchapterId  = document.querySelectorAll(`#chapter-${chapterId}-subchapters > .subchapter`).length;
+      const chapterId = e.target.dataset.chapter;
+      const subchapterId = document.querySelectorAll(`#chapter-${chapterId}-subchapters > .subchapter`).length;
       addSubchapter(chapterId, subchapterId);
     }
 
-    /* Hapus Bab */
     if (e.target.classList.contains('removeChapter')) {
       const chapterEl = e.target.closest('.chapter');
-      if (chapterEl) {
-        /* bersihkan Quill subbab di dalamnya */
-        chapterEl.querySelectorAll('.quillEditor').forEach(ed => {
-          quillSubchapterEditors.delete(ed.id);
-        });
-        chapterEl.remove();
-      }
+      if (chapterEl) chapterEl.remove();
     }
 
-    /* Hapus Subbab */
     if (e.target.classList.contains('removeSubchapter')) {
       const subEl = e.target.closest('.subchapter');
-      if (subEl) {
-        const ed = subEl.querySelector('.quillEditor');
-        if (ed) quillSubchapterEditors.delete(ed.id);
-        subEl.remove();
-      }
+      if (subEl) subEl.remove();
     }
   });
 
-  /* ---------- Tambah Bab baru ---------- */
   document.getElementById('addChapter').addEventListener('click', () => addChapter(chapterCount++));
 
-  /* ---------- Submit ---------- */
   document.getElementById('saveBtn').addEventListener('click', () => {
-    /* Simpan deskripsi utama */
     document.getElementById('description').value = quillDescription.root.innerHTML;
 
-    /* Bersihkan hidden input lama */
-    document.querySelectorAll('input[type="hidden"][name^="chapters"]').forEach(el => el.remove());
-
-    /* Tambah hidden input konten subbab */
-    quillSubchapterEditors.forEach((quill, id) => {
-      if (!document.getElementById(id)) return;          // editor sudah dihapus
-      const m = id.match(/chapter(\d+)_subchapter(\d+)_editor/);
-      if (m) {
-        const [ , chapId, subId ] = m;
-        const inp = document.createElement('input');
-        inp.type  = 'hidden';
-        inp.name  = `chapters[${chapId}][subchapters][${subId}][content]`;
-        inp.value = quill.root.innerHTML;
-        ebookForm.appendChild(inp);
-      }
-    });
-
-    /* Validasi & submit */
     if (ebookForm.checkValidity()) {
       ebookForm.submit();
     } else {
@@ -233,4 +261,9 @@
     }
   });
 </script>
+
 @endsection
+
+
+
+
